@@ -52,13 +52,15 @@ labels = []
 for imagePath in imagePaths:
     label = imagePath.split(os.path.sep)[-2][-3:]
     image = cv2.imread(imagePath)
-    image = cv2.resize(image, (64, 64))
+    image = cv2.resize(image, (32, 32))
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY, dstCn=1)
     data.append(image)
     labels.append(LABELS[label])
 
 # convert the data into a NumPy array, then preprocess it by scaling
 # all pixel intensities to the range [0, 1]
-data = np.array(data, dtype="float") / 255.0
+# data = np.array(data, dtype="float") / 255.0
+data = np.divide(data, 255)
 
 # perform one-hot encoding on the labels
 lb = LabelBinarizer()
@@ -68,6 +70,8 @@ labels = lb.fit_transform(labels)
 # the data for training and the remaining 25% for testing
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
                                                   test_size=0.2, stratify=labels, random_state=42)
+trainX = trainX[..., np.newaxis]
+testX = testX[..., np.newaxis]
 
 # construct the training image generator for data augmentation
 aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
@@ -76,9 +80,9 @@ aug = ImageDataGenerator(rotation_range=20, zoom_range=0.15,
 
 # initialize the optimizer and model
 print("[INFO] compiling model...")
-#opt = SGD(lr=0.01)
+# opt = SGD(lr=0.01)
 opt = Adam(lr=1e-4, decay=1e-4 / args["epochs"])
-model = LeNet.build(numChannels=3, width=64, height=64,
+model = LeNet.build(numChannels=1, width=32, height=32,
                     numClasses=62,
                     weightsPath=args["weights"] if args["load_model"] > 0 else None)
 model.compile(loss="categorical_crossentropy", optimizer=opt,
@@ -101,7 +105,7 @@ if args["load_model"] < 0:
     (loss, accuracy) = model.evaluate(testX, testY,
                                       batch_size=64, verbose=1)
     print("[INFO] accuracy: {:.2f}%".format(accuracy * 100))
-    print("[INFO] loss: {:.2f}%".format(loss * 100))
+    print("[INFO] loss: {:.2f}".format(loss))
 
     # evaluate the network
     print("[INFO] evaluating network...")
@@ -135,7 +139,7 @@ if args["save_model"] > 0:
 for i in np.random.choice(np.arange(0, len(testY)), size=(10,)):
     # classify the digit
     probs = model.predict(testX[np.newaxis, i])
-    prediction = probs.argmax(axis=1) #TODO: change predicted number to corresponding character
+    prediction = probs.argmax(axis=1)
     prediction = lb.classes_[prediction]
 
     # extract the image from the testData if using "channels_first"

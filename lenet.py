@@ -2,7 +2,7 @@
 from keras.models import Sequential
 from keras.layers.convolutional import Conv2D
 from keras.layers.convolutional import MaxPooling2D
-from keras.layers.core import Activation
+from keras.layers.core import Activation, Reshape
 from keras.layers.core import Flatten
 from keras.layers.core import Dense
 from keras import backend as K
@@ -37,7 +37,11 @@ class LeNet:
         model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 
         # define the first FC => ACTIVATION layers
-        model.add(Flatten())
+        # model.add(Reshape(target_shape=(16*16*64, ))) # 2 sets, 64x64 photos
+        # model.add(Reshape(target_shape=(8*8*64, ))) # 2 sets, 32x32 photos
+        # model.add(Reshape(target_shape=(8*8*128, ))) # dla 3 zbiorów CONV => ACTIVATION => POOL, 64x64
+        model.add(Reshape(target_shape=(4*4*128, ))) # dla 3 zbiorów CONV => ACTIVATION => POOL, 32x32
+        # model.add(Flatten())
         model.add(Dense(512))
         model.add(Activation(activation))
 
