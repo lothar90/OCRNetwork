@@ -1,5 +1,7 @@
 import os
 import argparse
+import time
+
 import cv2
 import tensorflow as tf
 import numpy as np
@@ -54,6 +56,7 @@ for i in range(len(kerasData)):
     prediction = lb.classes_[prediction]
     print("[INFO] Predicted: {}, Actual: {}".format(prediction[0], labels[i]))
 
+millis = int(round(time.time()*1000))
 print("Tensorflow results:")
 for i in range(len(data)):
     image = data[i].astype('float32')
@@ -63,3 +66,4 @@ for i in range(len(data)):
     prediction = cvOut.argmax(axis=1)
     prediction = lb.classes_[prediction]
     print("[INFO] Predicted: {}, Actual: {}".format(prediction[0], labels[i]))
+print("Estimated time: ", (int(round(time.time()*1000)) - millis), "ms")
